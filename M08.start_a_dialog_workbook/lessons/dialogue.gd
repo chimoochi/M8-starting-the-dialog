@@ -17,41 +17,73 @@ var bodies := {
 ## - text: a [code]String[/code] containing the text the character says
 ## - character: a [code]Texture[/code] representing the character
 var dialogue_items: Array[Dictionary] = [
-	{
-		"expression": expressions["regular"],
-		"text": "I've been learning about [wave]Arrays and Dictionaries[/wave]",
-		"character": bodies["sophia"]
-	},
-	{
-		"expression": expressions["regular"],
-		"text": "How has it been going?",
-		"character": bodies["pink"]
-	},
-	{
-		"expression": expressions["sad"],
-		"text": "... Well... it is a little bit [shake]complicated[/shake]!",
-		"character": bodies["sophia"]
-	},
-	{
-		"expression": expressions["sad"],
-		"text": "Oh!",
-		"character": bodies["pink"]
-	},
-	{
-		"expression": expressions["regular"],
-		"text": "I believe in you!",
-		"character": bodies["pink"]
-	},
-	{
-		"expression": expressions["happy"],
-		"text": "If you stick to it, you'll eventually make it!",
-		"character": bodies["pink"]
-	},
-	{
-		"expression": expressions["happy"],
-		"text": "That's it! Let's [tornado freq=3.0][rainbow val=1.0]GOOOOOO!!![/rainbow][/tornado]",
-		"character": bodies["sophia"]
+{
+	"expression": expressions["regular"],
+	"text": "I've been learning about [wave]Arrays and Dictionaries[/wave]",
+	"character": bodies["sophia"],
+	"choices": {
+		"what about them?": 2,
+		"ok": 1,
+		"quit": -1
 	}
+},
+{
+	"expression": expressions["regular"],
+	"text": "How has it been going?",
+	"character": bodies["pink"],
+	"choices": {
+		"good": 4,
+		"bad": 3
+	}
+},
+{
+	"expression": expressions["sad"],
+	"text": "... Well... it is a little bit [shake]complicated[/shake]!",
+	"character": bodies["sophia"],
+	"choices": {
+		"next": 4
+	}
+},
+{
+	"expression": expressions["sad"],
+	"text": "Oh!",
+	"character": bodies["pink"],
+	"choices": {
+		"that's okay": 5,
+		"tell me more": 5
+	}
+},
+{
+	"expression": expressions["regular"],
+	"text": "I believe in you!",
+	"character": bodies["pink"],
+	"choices": {
+		"thanks": 6,
+		"not sure": 6,
+		"quit": -1
+	}
+},
+{
+	"expression": expressions["happy"],
+	"text": "If you stick to it, you'll eventually make it!",
+	"character": bodies["pink"],
+	"choices": {
+		"you're right": 7,
+		"hmm...": 7,
+		"quit": -1
+	}
+},
+{
+	"expression": expressions["happy"],
+	"text": "That's it! Let's [tornado freq=3.0][rainbow val=1.0]GOOOOOO!!![/rainbow][/tornado]",
+	"character": bodies["sophia"],
+	"choices": {
+		"let's go!!": 1,
+		"wait what": 1,
+		"quit": -1
+	}
+}
+
 ]
 var current_item_index := 0
 
@@ -68,8 +100,23 @@ var current_item_index := 0
 ## The Expression
 @onready var expression: TextureRect = %Expression
 
-
+func create_buttons(choices_data: Dictionary) -> void:
+	for button in action_buttons_v_box_container.get_children():
+		button.queue_free()
+	for v in choices_data:
+		var button = Button.new()
+		action_buttons_v_box_container.add_child(button)
+		button.text = v
+		var target_line_idx: int = choices_data[v]
+		button.pressed.connect(show_text.bind(target_line_idx))
+		
+		if target_line_idx == - 1:
+			button.pressed.connect(get_tree().quit)
+		else:
+			button.pressed.connect(show_text.bind(target_line_idx))
+		
 func _ready() -> void:
+
 	show_text(0)
 
 
@@ -83,7 +130,7 @@ func show_text(current_item_index: int) -> void:
 	rich_text_label.text = current_item["text"]
 	expression.texture = current_item["expression"]
 	body.texture = current_item["character"]
-
+	create_buttons(current_item["choices"])
 	# We set the initial visible ratio to the text to 0, so we can change it in the tween
 	rich_text_label.visible_ratio = 0.0
 	# We create a tween that will draw the text
@@ -107,6 +154,12 @@ func show_text(current_item_index: int) -> void:
 
 	# We animate the character sliding in.
 	slide_in()
+	for button: Button in action_buttons_v_box_container.get_children():
+		button.disabled = true
+	tween.finished.connect(func(): #-> void:
+		for button: Button in action_buttons_v_box_container.get_children():
+			button.disabled = false
+	)
 
 	# Finally, we disable the next button until the text finishes displaying.
 
