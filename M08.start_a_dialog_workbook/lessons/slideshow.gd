@@ -17,6 +17,7 @@ var bodies := {
 ## - character: a [code]Texture[/code] representing the character
 
 @export var dialogue_items: Array[SlideShowEntry] = []
+@export var choices: Array[DialogueChoice] = []
 
 var current_item_index := 0
 
