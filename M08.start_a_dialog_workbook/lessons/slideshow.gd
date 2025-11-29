@@ -1,3 +1,5 @@
+@icon("res://assets/dialogue_item_icon.svg")
+
 extends Control
 
 var expressions := {
